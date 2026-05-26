@@ -45,7 +45,8 @@ public class SecurityConfig {
                     "/actuator/**",
                     "/login/**",
                     "/oauth2/**",
-                    "/auth/**"
+                    "/auth/**",
+                    "/recycling/items"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
