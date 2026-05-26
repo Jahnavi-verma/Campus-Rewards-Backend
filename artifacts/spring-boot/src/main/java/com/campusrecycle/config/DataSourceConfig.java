@@ -14,35 +14,46 @@ import java.net.URISyntaxException;
 @Configuration
 public class DataSourceConfig {
 
+    @Value("${SUPABASE_DB_URL:#{null}}")
+    private String supabaseDbUrl;
+
     @Value("${DATABASE_URL:#{null}}")
     private String databaseUrl;
 
     @Primary
     @Bean
     public DataSource dataSource() {
-        HikariConfig config = new HikariConfig();
+        // Prefer SUPABASE_DB_URL if set, fall back to DATABASE_URL
+        String rawUrl = (supabaseDbUrl != null && !supabaseDbUrl.isBlank())
+                ? supabaseDbUrl : databaseUrl;
 
+        if (rawUrl == null || rawUrl.isBlank()) {
+            throw new IllegalStateException(
+                "No database URL configured. Set SUPABASE_DB_URL or DATABASE_URL.");
+        }
+
+        return buildDataSource(rawUrl);
+    }
+
+    private DataSource buildDataSource(String rawUrl) {
         try {
-            String raw = databaseUrl;
-            if (raw == null || raw.isBlank()) {
-                throw new IllegalStateException("DATABASE_URL environment variable is not set.");
-            }
+            // Normalise scheme
+            String normalized = rawUrl
+                    .replaceFirst("^postgres://", "postgresql://")
+                    .replaceFirst("^jdbc:postgresql://", "postgresql://");
 
-            // Normalise to a standard URI by replacing postgres:// → postgresql://
-            raw = raw.replaceFirst("^postgres://", "postgresql://");
-
-            // Strip query string so URI parses cleanly, then carry it forward
+            // Strip query string
             String query = "";
-            int qIdx = raw.indexOf('?');
+            int qIdx = normalized.indexOf('?');
             if (qIdx >= 0) {
-                query = raw.substring(qIdx + 1);
-                raw = raw.substring(0, qIdx);
+                query = normalized.substring(qIdx + 1);
+                normalized = normalized.substring(0, qIdx);
             }
 
-            URI uri = new URI(raw);
+            URI uri = new URI(normalized);
             String host = uri.getHost();
             int port = uri.getPort() > 0 ? uri.getPort() : 5432;
-            String path = uri.getPath(); // e.g. "/heliumdb"
+            String path = uri.getPath(); // "/postgres"
 
             String username = null;
             String password = null;
@@ -53,28 +64,29 @@ public class DataSourceConfig {
                 password = parts.length > 1 ? parts[1] : "";
             }
 
-            // Build a clean JDBC URL (no embedded credentials, no sslmode param that confuses HikariCP)
             String jdbcUrl = String.format("jdbc:postgresql://%s:%d%s", host, port, path);
 
+            HikariConfig config = new HikariConfig();
             config.setJdbcUrl(jdbcUrl);
             if (username != null) config.setUsername(username);
             if (password != null) config.setPassword(password);
+            config.setConnectionTimeout(30000);
+            config.setMaximumPoolSize(5);
 
-            // Pass through safe JDBC properties from the original query string
-            if (query.contains("sslmode=disable")) {
-                config.addDataSourceProperty("sslmode", "disable");
-            } else if (query.contains("sslmode=require")) {
+            // SSL for Supabase
+            if (host != null && host.contains("supabase.co")) {
                 config.addDataSourceProperty("sslmode", "require");
+            } else if (query.contains("sslmode=disable")) {
+                config.addDataSourceProperty("sslmode", "disable");
             }
 
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
             return new HikariDataSource(config);
 
         } catch (URISyntaxException e) {
-            throw new IllegalStateException("Cannot parse DATABASE_URL: " + databaseUrl, e);
+            throw new IllegalStateException("Cannot parse database URL: " + rawUrl, e);
         }
     }
 }
