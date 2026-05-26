@@ -18,6 +18,6 @@ public interface RecyclingSubmissionRepository extends JpaRepository<RecyclingSu
     @Query("SELECT SUM(s.pointsEarned) FROM RecyclingSubmission s WHERE s.user.id = :userId AND s.status = 'APPROVED'")
     Integer sumApprovedPointsByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT s.itemType, COUNT(s), SUM(s.quantityKg) FROM RecyclingSubmission s WHERE s.status = 'APPROVED' GROUP BY s.itemType")
+    @Query("SELECT s.itemType, COUNT(s), SUM(s.quantity) FROM RecyclingSubmission s WHERE s.status = 'APPROVED' GROUP BY s.itemType")
     List<Object[]> getStatsByItemType();
 }

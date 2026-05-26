@@ -1,7 +1,6 @@
 package com.campusrecycle.model;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,11 +15,11 @@ public class RecyclingSubmission {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "item_type", nullable = false, length = 100)
+    @Column(name = "item_type", nullable = false, length = 50)
     private String itemType;
 
-    @Column(name = "quantity_kg", nullable = false, precision = 8, scale = 3)
-    private BigDecimal quantityKg = BigDecimal.ONE;
+    @Column(name = "quantity", nullable = false)
+    private int quantity = 1;
 
     @Column(name = "points_earned", nullable = false)
     private int pointsEarned = 0;
@@ -32,7 +31,7 @@ public class RecyclingSubmission {
     private String notes;
 
     @Column(nullable = false, length = 50)
-    private String status = "PENDING";
+    private String status = "APPROVED";
 
     @Column(name = "submitted_at", nullable = false)
     private LocalDateTime submittedAt;
@@ -54,8 +53,8 @@ public class RecyclingSubmission {
     public String getItemType() { return itemType; }
     public void setItemType(String itemType) { this.itemType = itemType; }
 
-    public BigDecimal getQuantityKg() { return quantityKg; }
-    public void setQuantityKg(BigDecimal quantityKg) { this.quantityKg = quantityKg; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 
     public int getPointsEarned() { return pointsEarned; }
     public void setPointsEarned(int pointsEarned) { this.pointsEarned = pointsEarned; }

@@ -2,7 +2,6 @@ package com.campusrecycle.dto;
 
 import com.campusrecycle.model.RecyclingSubmission;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class SubmissionDto {
@@ -11,7 +10,7 @@ public class SubmissionDto {
     private Long userId;
     private String userName;
     private String itemType;
-    private BigDecimal quantityKg;
+    private int quantity;
     private int pointsEarned;
     private String location;
     private String notes;
@@ -25,7 +24,7 @@ public class SubmissionDto {
         dto.userId = s.getUser().getId();
         dto.userName = s.getUser().getName();
         dto.itemType = s.getItemType();
-        dto.quantityKg = s.getQuantityKg();
+        dto.quantity = s.getQuantity();
         dto.pointsEarned = s.getPointsEarned();
         dto.location = s.getLocation();
         dto.notes = s.getNotes();
@@ -39,7 +38,7 @@ public class SubmissionDto {
     public Long getUserId() { return userId; }
     public String getUserName() { return userName; }
     public String getItemType() { return itemType; }
-    public BigDecimal getQuantityKg() { return quantityKg; }
+    public int getQuantity() { return quantity; }
     public int getPointsEarned() { return pointsEarned; }
     public String getLocation() { return location; }
     public String getNotes() { return notes; }

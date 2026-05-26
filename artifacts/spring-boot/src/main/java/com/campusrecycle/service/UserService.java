@@ -12,6 +12,8 @@ import java.util.Optional;
 @Service
 public class UserService {
 
+    private static final int WELCOME_BONUS = 20;
+
     private final UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {
@@ -35,6 +37,7 @@ public class UserService {
         user.setEmail(email);
         user.setName(name);
         user.setAvatarUrl(avatarUrl);
+        user.setPoints(WELCOME_BONUS);
         return userRepository.save(user);
     }
 
@@ -50,7 +53,8 @@ public class UserService {
     public User addPoints(Long userId, int points) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-        user.setPoints(user.getPoints() + points);
+        int newTotal = Math.max(0, user.getPoints() + points);
+        user.setPoints(newTotal);
         return userRepository.save(user);
     }
 }

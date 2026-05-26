@@ -1,6 +1,7 @@
 package com.campusrecycle.dto;
 
 import com.campusrecycle.model.User;
+import com.campusrecycle.util.LevelUtils;
 import java.time.LocalDateTime;
 
 public class UserDto {
@@ -11,6 +12,10 @@ public class UserDto {
     private String avatarUrl;
     private int points;
     private String role;
+    private int level;
+    private String levelTitle;
+    private int nextLevelPoints;
+    private int levelProgressPercent;
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
 
@@ -24,6 +29,13 @@ public class UserDto {
         dto.role = user.getRole();
         dto.createdAt = user.getCreatedAt();
         dto.lastLoginAt = user.getLastLoginAt();
+
+        LevelUtils.LevelInfo info = LevelUtils.getLevel(user.getPoints());
+        dto.level = info.level();
+        dto.levelTitle = info.title();
+        dto.nextLevelPoints = info.nextLevelPoints();
+        dto.levelProgressPercent = info.progressPercent();
+
         return dto;
     }
 
@@ -33,6 +45,10 @@ public class UserDto {
     public String getAvatarUrl() { return avatarUrl; }
     public int getPoints() { return points; }
     public String getRole() { return role; }
+    public int getLevel() { return level; }
+    public String getLevelTitle() { return levelTitle; }
+    public int getNextLevelPoints() { return nextLevelPoints; }
+    public int getLevelProgressPercent() { return levelProgressPercent; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getLastLoginAt() { return lastLoginAt; }
 }

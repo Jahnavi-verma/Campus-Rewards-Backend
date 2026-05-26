@@ -22,11 +22,15 @@ public class RecyclingController {
     }
 
     @PostMapping("/submit")
-    public ResponseEntity<SubmissionDto> submit(@RequestBody SubmissionRequest request,
-                                                 Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
-        RecyclingSubmission saved = submissionService.submit(userId, request);
-        return ResponseEntity.ok(SubmissionDto.from(saved));
+    public ResponseEntity<?> submit(@RequestBody SubmissionRequest request,
+                                    Authentication authentication) {
+        try {
+            Long userId = Long.parseLong(authentication.getName());
+            RecyclingSubmission saved = submissionService.submit(userId, request);
+            return ResponseEntity.ok(SubmissionDto.from(saved));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/my")
@@ -37,24 +41,24 @@ public class RecyclingController {
         return ResponseEntity.ok(list);
     }
 
-    @GetMapping("/points-table")
-    public ResponseEntity<Map<String, Integer>> pointsTable() {
-        return ResponseEntity.ok(submissionService.getPointsTable());
+    @GetMapping("/items")
+    public ResponseEntity<Map<String, Object>> itemInfo() {
+        return ResponseEntity.ok(submissionService.getItemInfo());
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<SubmissionDto>> allSubmissions(Authentication authentication) {
+    public ResponseEntity<List<SubmissionDto>> allSubmissions() {
         List<SubmissionDto> list = submissionService.getAllSubmissions()
                 .stream().map(SubmissionDto::from).toList();
         return ResponseEntity.ok(list);
     }
 
     @PatchMapping("/{id}/review")
-    public ResponseEntity<SubmissionDto> review(@PathVariable Long id,
-                                                 @RequestBody Map<String, String> body,
-                                                 Authentication authentication) {
+    public ResponseEntity<?> review(@PathVariable Long id,
+                                    @RequestBody Map<String, String> body,
+                                    Authentication authentication) {
         String status = body.get("status");
-        if (status == null) return ResponseEntity.badRequest().build();
+        if (status == null) return ResponseEntity.badRequest().body(Map.of("error", "status is required"));
         Long reviewerId = Long.parseLong(authentication.getName());
         RecyclingSubmission updated = submissionService.review(id, status, reviewerId);
         return ResponseEntity.ok(SubmissionDto.from(updated));
