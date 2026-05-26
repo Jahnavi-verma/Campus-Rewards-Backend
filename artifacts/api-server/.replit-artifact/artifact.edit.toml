@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/api"
+title = "Spring Boot API"
+version = "1.0.0"
+id = "3B4_FFSkEVBkAeYMFRJ2e"
+
+[[services]]
+localPort = 8080
+name = "API Server"
+paths = ["/api"]
+
+[services.development]
+run = "mvn -f /home/runner/workspace/artifacts/spring-boot/pom.xml --no-transfer-progress spring-boot:run"
+
+[services.production]
+
+[services.production.build]
+args = ["mvn", "-f", "/home/runner/workspace/artifacts/spring-boot/pom.xml", "package", "-DskipTests", "--no-transfer-progress"]
+
+[services.production.run]
+args = ["java", "-jar", "/home/runner/workspace/artifacts/spring-boot/target/campus-recycle-backend-0.0.1-SNAPSHOT.jar"]
+
+[services.production.run.env]
+PORT = "8080"
+
+[services.production.health.startup]
+path = "/api/healthz"
