@@ -1,0 +1,41 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user,user:email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+app:
+  jwt:
+    secret: ${SESSION_SECRET}
+    expiration-ms: 86400000
+  frontend-url: https://campus-recycle-rewards--ctu01.replit.app
+  python-backend-url: ${PYTHON_BACKEND_URL:http://localhost:8000}
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.campusrecycle: INFO
+    org.springframework.security: WARN
