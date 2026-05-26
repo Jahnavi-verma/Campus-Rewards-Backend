@@ -15,6 +15,8 @@ public interface RecyclingSubmissionRepository extends JpaRepository<RecyclingSu
 
     List<RecyclingSubmission> findByStatusOrderBySubmittedAtDesc(String status);
 
+    List<RecyclingSubmission> findTop20ByOrderBySubmittedAtDesc();
+
     @Query("SELECT SUM(s.pointsEarned) FROM RecyclingSubmission s WHERE s.user.id = :userId AND s.status = 'APPROVED'")
     Integer sumApprovedPointsByUserId(@Param("userId") Long userId);
 

@@ -1,22 +1,24 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Campus Recycle Rewards API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: users
+    description: User operations
+  - name: recycling
+    description: Recycling submission operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +26,212 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /users/leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [users]
+      summary: Top 20 users by points
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Leaderboard list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserDto"
+
+  /users/me:
+    get:
+      operationId: getMyProfile
+      tags: [users]
+      summary: Current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+
+  /recycling/items:
+    get:
+      operationId: getRecyclingItems
+      tags: [recycling]
+      summary: Available recyclable item types
+      responses:
+        "200":
+          description: Item types and welcome bonus
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecyclingItemsInfo"
+
+  /recycling/stats:
+    get:
+      operationId: getRecyclingStats
+      tags: [recycling]
+      summary: Campus-wide recycling statistics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Aggregated stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecyclingStats"
+
+  /recycling/recent:
+    get:
+      operationId: getRecentSubmissions
+      tags: [recycling]
+      summary: Recent recycling submissions across campus
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Recent submissions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubmissionDto"
+
+  /recycling/submit:
+    post:
+      operationId: submitRecycling
+      tags: [recycling]
+      summary: Submit a recycling action
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmissionInput"
+      responses:
+        "200":
+          description: Submission result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionDto"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
+        service:
+          type: string
+      required: [status]
 
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        points:
+          type: integer
+        role:
+          type: string
+        level:
+          type: integer
+        levelTitle:
+          type: string
+        nextLevelPoints:
+          type: integer
+        levelProgressPercent:
+          type: integer
+      required: [id, name, points, level, levelTitle]
+
+    RecyclingItemsInfo:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecyclingItem"
+        welcomeBonus:
+          type: integer
+      required: [items, welcomeBonus]
+
+    RecyclingItem:
+      type: object
+      properties:
+        type:
+          type: string
+        pointsPerItem:
+          type: integer
+        description:
+          type: string
+      required: [type, pointsPerItem]
+
+    RecyclingStats:
+      type: object
+      properties:
+        totalSubmissions:
+          type: integer
+        totalPoints:
+          type: integer
+        totalBottles:
+          type: integer
+        totalCans:
+          type: integer
+        totalUsers:
+          type: integer
+      required: [totalSubmissions, totalPoints, totalBottles, totalCans, totalUsers]
+
+    SubmissionDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        itemType:
+          type: string
+        quantity:
+          type: integer
+        pointsEarned:
+          type: integer
+        status:
+          type: string
+        location:
+          type: ["string", "null"]
+        submittedAt:
+          type: string
+        userName:
+          type: ["string", "null"]
+      required: [id, itemType, quantity, pointsEarned, status]
+
+    SubmissionInput:
+      type: object
+      properties:
+        itemType:
+          type: string
+        quantity:
+          type: integer
+        location:
+          type: string
+      required: [itemType, quantity]

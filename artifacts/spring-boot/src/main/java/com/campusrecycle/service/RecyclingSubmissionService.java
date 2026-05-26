@@ -5,6 +5,7 @@ import com.campusrecycle.model.RecyclingSubmission;
 import com.campusrecycle.model.User;
 import com.campusrecycle.repository.RecyclingSubmissionRepository;
 import com.campusrecycle.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +70,34 @@ public class RecyclingSubmissionService {
 
     public List<RecyclingSubmission> getAllSubmissions() {
         return submissionRepository.findAll();
+    }
+
+    public List<RecyclingSubmission> getRecentSubmissions() {
+        return submissionRepository.findTop20ByOrderBySubmittedAtDesc();
+    }
+
+    public Map<String, Object> getCampusStats() {
+        List<Object[]> itemStats = submissionRepository.getStatsByItemType();
+        long totalUsers = userRepository.count();
+        long totalSubmissions = submissionRepository.count();
+
+        long totalBottles = 0, totalCans = 0, totalPoints = 0;
+        for (Object[] row : itemStats) {
+            String type = (String) row[0];
+            long count = ((Number) row[1]).longValue();
+            long qty   = ((Number) row[2]).longValue();
+            totalPoints += qty;
+            if ("BOTTLE".equals(type)) totalBottles = qty;
+            else if ("CAN".equals(type)) totalCans = qty;
+        }
+
+        return Map.of(
+            "totalSubmissions", totalSubmissions,
+            "totalPoints",      totalPoints,
+            "totalBottles",     totalBottles,
+            "totalCans",        totalCans,
+            "totalUsers",       totalUsers
+        );
     }
 
     @Transactional

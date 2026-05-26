@@ -46,6 +46,18 @@ public class RecyclingController {
         return ResponseEntity.ok(submissionService.getItemInfo());
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> stats() {
+        return ResponseEntity.ok(submissionService.getCampusStats());
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity<List<SubmissionDto>> recent() {
+        List<SubmissionDto> list = submissionService.getRecentSubmissions()
+                .stream().map(SubmissionDto::from).toList();
+        return ResponseEntity.ok(list);
+    }
+
     @GetMapping("/all")
     public ResponseEntity<List<SubmissionDto>> allSubmissions() {
         List<SubmissionDto> list = submissionService.getAllSubmissions()
