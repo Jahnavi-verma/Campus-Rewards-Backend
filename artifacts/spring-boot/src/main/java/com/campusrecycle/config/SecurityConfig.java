@@ -2,12 +2,13 @@ package com.campusrecycle.config;
 
 import com.campusrecycle.security.JwtAuthenticationFilter;
 import com.campusrecycle.security.JwtTokenProvider;
-import com.campusrecycle.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -21,15 +22,17 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final OAuth2AuthenticationSuccessHandler successHandler;
     private final AppProperties appProperties;
 
     public SecurityConfig(JwtTokenProvider jwtTokenProvider,
-                          OAuth2AuthenticationSuccessHandler successHandler,
                           AppProperties appProperties) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.successHandler = successHandler;
         this.appProperties = appProperties;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -43,15 +46,11 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/healthz",
                     "/actuator/**",
-                    "/login/**",
-                    "/oauth2/**",
-                    "/auth/**",
+                    "/auth/login",
+                    "/auth/register",
                     "/recycling/items"
                 ).permitAll()
                 .anyRequest().authenticated()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .successHandler(successHandler)
             )
             .addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider),
@@ -67,7 +66,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
             appProperties.getFrontendUrl(),
             "http://localhost:3000",
-            "http://localhost:5173"
+            "http://localhost:5173",
+            "https://campus-recycle-rewards--ctu01.replit.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

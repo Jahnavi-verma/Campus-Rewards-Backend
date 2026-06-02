@@ -1,11 +1,14 @@
 package com.campusrecycle.controller;
 
+import com.campusrecycle.dto.LoginRequest;
+import com.campusrecycle.dto.RegisterRequest;
 import com.campusrecycle.dto.UserDto;
 import com.campusrecycle.model.User;
 import com.campusrecycle.security.JwtTokenProvider;
 import com.campusrecycle.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -16,10 +19,44 @@ public class AuthController {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(JwtTokenProvider jwtTokenProvider, UserService userService) {
+    public AuthController(JwtTokenProvider jwtTokenProvider, UserService userService, PasswordEncoder passwordEncoder) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
+        try {
+            User user = userService.registerUser(
+                    registerRequest.getEmail(),
+                    registerRequest.getPassword(),
+                    registerRequest.getName()
+            );
+            return ResponseEntity.ok(UserDto.from(user));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        return userService.findByEmail(loginRequest.getEmail())
+                .filter(user -> passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()))
+                .map(user -> {
+                    String token = jwtTokenProvider.generateToken(
+                            String.valueOf(user.getId()),
+                            user.getEmail(),
+                            user.getName()
+                    );
+                    return ResponseEntity.ok(Map.of(
+                            "token", token,
+                            "user", UserDto.from(user)
+                    ));
+                })
+                .orElse(ResponseEntity.status(401).body(Map.of("error", "Invalid email or password")));
     }
 
     @GetMapping("/me")
@@ -45,13 +82,5 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout() {
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
-    }
-
-    @GetMapping("/login/github")
-    public ResponseEntity<Map<String, String>> githubLoginUrl() {
-        return ResponseEntity.ok(Map.of(
-            "url", "/api/oauth2/authorization/github",
-            "provider", "github"
-        ));
     }
 }
