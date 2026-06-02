@@ -1,5 +1,6 @@
 package com.campusrecycle.model;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
