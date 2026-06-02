@@ -10,15 +10,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     // githubId is now optional since we are switching to password login
+
     @Column(unique = true)
     private String githubId;
 
     @Column(unique = true, nullable = false)
     private String email;
-
-    // NEW: Field for storing the BCrypt hashed password
-    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)

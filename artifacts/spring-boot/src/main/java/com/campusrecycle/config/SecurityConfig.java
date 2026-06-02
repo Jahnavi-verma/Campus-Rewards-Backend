@@ -2,10 +2,14 @@ package com.campusrecycle.config;
 
 import com.campusrecycle.security.JwtAuthenticationFilter;
 import com.campusrecycle.security.JwtTokenProvider;
+
 import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -38,6 +42,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -48,8 +57,10 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/healthz",
                     "/actuator/**",
-                    "/login/**",
-                    "/auth/**",           // Registration and Login endpoints
+
+                    "/auth/login",
+                    "/auth/register",
+
                     "/recycling/items"
                 ).permitAll()
                 .anyRequest().authenticated()
@@ -68,7 +79,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
             appProperties.getFrontendUrl() != null ? appProperties.getFrontendUrl() : "*",
             "http://localhost:3000",
-            "http://localhost:5173"
+            "http://localhost:5173",
+            "https://campus-recycle-rewards--ctu01.replit.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
