@@ -4,23 +4,17 @@ server:
     context-path: /api
 
 spring:
-  jpa:
+datasource:
+  url: ${SUPABASE_DB_URL}
+  driver-class-name: org.postgresql.Driver
+jpa:
+  hibernate:
+    ddl-auto: update
+  show-sql: false
+  properties:
     hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  security:
-    oauth2:
-      client:
-        registration:
-          github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
-            scope: read:user,user:email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      temp.use_jdbc_metadata_defaults: false
 app:
   jwt:
     secret: ${SESSION_SECRET}

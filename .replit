@@ -35,3 +35,6 @@ externalPort = 3000
 
 [userenv.shared]
 DATABASE_URL = "postgresql://postgres:binGO-Java-@db.eocjeveawhtnzplaklbo.supabase.co:5432/postgres"
+
+[nix]
+packages = ["netcat-gnu"]

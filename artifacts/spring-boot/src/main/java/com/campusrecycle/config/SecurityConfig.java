@@ -2,11 +2,9 @@ package com.campusrecycle.config;
 
 import com.campusrecycle.security.JwtAuthenticationFilter;
 import com.campusrecycle.security.JwtTokenProvider;
-import com.campusrecycle.security.OAuth2AuthenticationSuccessHandler;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -14,22 +12,29 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final OAuth2AuthenticationSuccessHandler successHandler;
     private final AppProperties appProperties;
 
     public SecurityConfig(JwtTokenProvider jwtTokenProvider,
-                          OAuth2AuthenticationSuccessHandler successHandler,
                           AppProperties appProperties) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.successHandler = successHandler;
         this.appProperties = appProperties;
+    }
+
+    // --- NEW: Added Password Encoder ---
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    // --- NEW: Added Authentication Manager ---
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
@@ -44,14 +49,10 @@ public class SecurityConfig {
                     "/healthz",
                     "/actuator/**",
                     "/login/**",
-                    "/oauth2/**",
-                    "/auth/**",
+                    "/auth/**",           // Registration and Login endpoints
                     "/recycling/items"
                 ).permitAll()
                 .anyRequest().authenticated()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .successHandler(successHandler)
             )
             .addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider),
@@ -65,7 +66,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-            appProperties.getFrontendUrl(),
+            appProperties.getFrontendUrl() != null ? appProperties.getFrontendUrl() : "*",
             "http://localhost:3000",
             "http://localhost:5173"
         ));
