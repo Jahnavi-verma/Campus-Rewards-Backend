@@ -11,9 +11,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    // githubId is now optional since we are switching to password login
-
     @Column(unique = true)
     private String githubId;
 
@@ -25,6 +22,10 @@ public class User {
     private String name;
 
     private String avatarUrl;
+
+    // 🌟 ADD THIS FIELD: Map the USN parameter to the column configuration
+    @Column(unique = true)
+    private String usn;
 
     @Column(nullable = false)
     private int points = 0;
@@ -63,6 +64,10 @@ public class User {
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 
+    // 🌟 ADD THESE USN METHODS
+    public String getUsn() { return usn; }
+    public void setUsn(String usn) { this.usn = usn; }
+
     public int getPoints() { return points; }
     public void setPoints(int points) { this.points = points; }
 
@@ -70,6 +75,8 @@ public class User {
     public void setRole(String role) { this.role = role; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
+    // 🌟 ADD THIS SETTER METHOD TO SATISFY THE SERVICE COMPILER
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public LocalDateTime getLastLoginAt() { return lastLoginAt; }
     public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }

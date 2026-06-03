@@ -33,14 +33,14 @@ public class AuthController {
             User user = userService.registerUser(
                     registerRequest.getEmail(),
                     registerRequest.getPassword(),
-                    registerRequest.getName()
+                    registerRequest.getName(),
+                    registerRequest.getUsn() // 🌟 ADD THIS PARAMETER HERE
             );
             return ResponseEntity.ok(UserDto.from(user));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         return userService.findByEmail(loginRequest.getEmail())

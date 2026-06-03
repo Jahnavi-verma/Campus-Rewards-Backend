@@ -14,6 +14,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Used to prevent duplicate accounts during registration
     Boolean existsByEmail(String email);
 
+    // 🌟 ADD THIS: Checks if a USN is already registered in Supabase
+    Boolean existsByUsn(String usn);
+
     // Kept for backward compatibility
     Optional<User> findByGithubId(String githubId);
 }

@@ -24,16 +24,26 @@ public class UserService {
     }
 
     @Transactional
-    public User registerUser(String email, String password, String name) {
-        if (userRepository.findByEmail(email).isPresent()) {
+    public User registerUser(String email, String password, String name, String usn) {
+        // 🌟 FIXED: Using clean existsBy check to match UserRepository style
+        if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already in use");
+        }
+
+        // 🌟 FIXED: Using existsByUsn to eliminate the old findByUsn compilation error
+        if (usn != null && !usn.trim().isEmpty() && userRepository.existsByUsn(usn)) {
+            throw new RuntimeException("USN already in use");
         }
 
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setName(name);
+        user.setUsn(usn); 
         user.setPoints(WELCOME_BONUS);
+        user.setRole("USER"); 
+        user.setCreatedAt(LocalDateTime.now());
+
         return userRepository.save(user);
     }
 
@@ -59,6 +69,8 @@ public class UserService {
         user.setName(name);
         user.setAvatarUrl(avatarUrl);
         user.setPoints(WELCOME_BONUS);
+        user.setRole("USER");
+        user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
     }
 
