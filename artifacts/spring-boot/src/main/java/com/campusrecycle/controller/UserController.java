@@ -1,7 +1,9 @@
 package com.campusrecycle.controller;
 
+import com.campusrecycle.dto.BadgeDto;
 import com.campusrecycle.dto.UserDto;
 import com.campusrecycle.model.User;
+import com.campusrecycle.service.BadgeService;
 import com.campusrecycle.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,9 +18,12 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final BadgeService badgeService;
 
-    public UserController(UserService userService) {
+    // 🔗 Updated constructor injecting both services
+    public UserController(UserService userService, BadgeService badgeService) {
         this.userService = userService;
+        this.badgeService = badgeService;
     }
 
     @GetMapping("/me")
@@ -46,5 +51,16 @@ public class UserController {
         int points = body.getOrDefault("points", 0);
         User user = userService.addPoints(userId, points);
         return ResponseEntity.ok(UserDto.from(user));
+    }
+
+    // 🎖️ GET /users/me/badges
+    // Pulls dynamic badge statuses calculated live from submission records
+    @GetMapping("/me/badges")
+    public ResponseEntity<List<BadgeDto>> getMyBadges(Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
+        int currentPoints = userService.findById(userId).map(User::getPoints).orElse(0);
+
+        List<BadgeDto> userBadges = badgeService.calculateUserBadges(userId, currentPoints);
+        return ResponseEntity.ok(userBadges);
     }
 }
