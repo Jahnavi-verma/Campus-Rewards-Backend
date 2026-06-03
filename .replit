@@ -1,5 +1,8 @@
 modules = ["nodejs-24", "java-graalvm22.3"]
 
+# 🌟 ADD THIS LINE: Tells Replit what to boot up when deployment goes live
+run = "pnpm start"
+
 [deployment]
 router = "application"
 deploymentTarget = "autoscale"
@@ -35,13 +38,14 @@ externalPort = 3000
 localPort = 8083
 externalPort = 3001
 
-[[ports]]
-localPort = 8083
-externalPort = 3001
-
 # REMOVE OR COMMENT OUT THE OLD USERENV DATABASE ACCESS
 # [userenv.shared]
 # DATABASE_URL = "postgresql://postgres:binGO-Java-@db.eocjeveawhtnzplaklbo.supabase.co:5432/postgres"
 
+# 🌟 UPDATED: Added Maven and JDK tools to bundle cleanly
 [nix]
-packages = ["netcat-gnu"]
+packages = ["netcat-gnu", "maven", "jdk17"]
+
+[userenv]
+
+[userenv.shared]
