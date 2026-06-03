@@ -20,8 +20,12 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class RecyclingSubmissionService {
 
-    private static final Set<String> VALID_ITEMS = Set.of("BOTTLE", "CAN");
-    private static final int POINTS_PER_PLASTIC = 10; // Updated point values
+    // 🌟 FIXED: Mapped precisely to match your Supabase column text layout
+    private static final String DB_BOTTLE = "Plastic Bottle";
+    private static final String DB_CAN = "Aluminum Can";
+
+    private static final Set<String> VALID_ITEMS = Set.of(DB_BOTTLE.toUpperCase(), DB_CAN.toUpperCase());
+    private static final int POINTS_PER_PLASTIC = 10; 
     private static final int POINTS_PER_METAL = 15;
 
     private final RecyclingSubmissionRepository submissionRepository;
@@ -37,9 +41,7 @@ public class RecyclingSubmissionService {
     }
 
     /**
-     * ⚡ NEW: Automated QR Verification Flow
-     * Connects directly to Firebase via the scanned QR sessionId, extracts counts, 
-     * saves logs to Supabase, and updates user points instantly.
+     * ⚡ REMADE: Automated QR Verification Flow with Status-State Validation
      */
     @Transactional
     public String processQrClaim(Long userId, String sessionId) throws ExecutionException, InterruptedException {
@@ -57,11 +59,28 @@ public class RecyclingSubmissionService {
         });
 
         DataSnapshot snapshot = future.get();
+
         if (!snapshot.exists()) {
-            throw new RuntimeException("Invalid QR Code: Session node not found in Firebase!");
+            throw new RuntimeException("Invalid QR Code: This recycling session does not exist!");
         }
 
-        // Extract real-time hardware counts from Firebase fields
+        String status = snapshot.child("status").getValue(String.class);
+        if (status == null) {
+            throw new RuntimeException("Corrupted data payload: Missing active status state!");
+        }
+
+        if ("active".equalsIgnoreCase(status)) {
+            throw new RuntimeException("Session is still active! Please wait for the hardware bin to finish processing your items.");
+        }
+
+        if ("claimed".equalsIgnoreCase(status)) {
+            throw new RuntimeException("This QR code has already been claimed by another student!");
+        }
+
+        if (!"completed".equalsIgnoreCase(status)) {
+            throw new RuntimeException("Invalid session state: Cannot claim a '" + status + "' session.");
+        }
+
         Integer plasticCountObj = snapshot.child("plasticCount").getValue(Integer.class);
         Integer metalCountObj = snapshot.child("metalCount").getValue(Integer.class);
 
@@ -71,19 +90,20 @@ public class RecyclingSubmissionService {
         int totalPoints = (plasticCount * POINTS_PER_PLASTIC) + (metalCount * POINTS_PER_METAL);
 
         if (totalPoints == 0) {
-            throw new RuntimeException("No items detected in this recycling session.");
+            throw new RuntimeException("No items were detected in this recycling session.");
         }
 
-        // Persist itemized automated entries to match database expectations
+        // 🌟 FIXED: Saves records with exact database strings ("Plastic Bottle" & "Aluminum Can")
         if (plasticCount > 0) {
-            saveAutomatedRecord(user, "BOTTLE", plasticCount, plasticCount * POINTS_PER_PLASTIC);
+            saveAutomatedRecord(user, DB_BOTTLE, plasticCount, plasticCount * POINTS_PER_PLASTIC);
         }
         if (metalCount > 0) {
-            saveAutomatedRecord(user, "CAN", metalCount, metalCount * POINTS_PER_METAL);
+            saveAutomatedRecord(user, DB_CAN, metalCount, metalCount * POINTS_PER_METAL);
         }
 
-        // Balance accumulation trigger
         userService.addPoints(userId, totalPoints);
+
+        ref.child("status").setValueAsync("claimed");
 
         return "QR Verified! Processed " + plasticCount + " plastics and " + metalCount + " metals. +" + totalPoints + " Points!";
     }
@@ -91,7 +111,7 @@ public class RecyclingSubmissionService {
     private void saveAutomatedRecord(User user, String itemType, int qty, int points) {
         RecyclingSubmission submission = new RecyclingSubmission();
         submission.setUser(user);
-        submission.setItemType(itemType);
+        submission.setItemType(itemType); // Set to "Plastic Bottle" or "Aluminum Can"
         submission.setQuantity(qty);
         submission.setPointsEarned(points);
         submission.setStatus("APPROVED");
@@ -99,27 +119,31 @@ public class RecyclingSubmissionService {
         submissionRepository.save(submission);
     }
 
-    // --- Kept Your Original Framework Methods Untouched ---
+    // --- Original Framework Methods Updated for New Database Strings ---
 
     @Transactional
     public RecyclingSubmission submit(Long userId, SubmissionRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
 
-        String itemType = request.getItemType() != null
-                ? request.getItemType().toUpperCase() : "";
+        String inputType = request.getItemType() != null ? request.getItemType().trim() : "";
+        String dbItemType;
 
-        if (!VALID_ITEMS.contains(itemType)) {
-            throw new IllegalArgumentException(
-                "Invalid item type '" + itemType + "'. Must be BOTTLE or CAN.");
+        // 🌟 FIXED: Maps incoming user request inputs to the correct mixed-case DB row format
+        if (inputType.equalsIgnoreCase("BOTTLE") || inputType.equalsIgnoreCase(DB_BOTTLE)) {
+            dbItemType = DB_BOTTLE;
+        } else if (inputType.equalsIgnoreCase("CAN") || inputType.equalsIgnoreCase(DB_CAN)) {
+            dbItemType = DB_CAN;
+        } else {
+            throw new IllegalArgumentException("Invalid item type '" + inputType + "'. Must be Plastic Bottle or Aluminum Can.");
         }
 
         int qty = Math.max(1, request.getQuantity());
-        int points = qty * (itemType.equals("BOTTLE") ? POINTS_PER_PLASTIC : POINTS_PER_METAL);
+        int points = qty * (dbItemType.equals(DB_BOTTLE) ? POINTS_PER_PLASTIC : POINTS_PER_METAL);
 
         RecyclingSubmission submission = new RecyclingSubmission();
         submission.setUser(user);
-        submission.setItemType(itemType);
+        submission.setItemType(dbItemType);
         submission.setQuantity(qty);
         submission.setPointsEarned(points);
         submission.setLocation(request.getLocation());
@@ -154,10 +178,11 @@ public class RecyclingSubmissionService {
             String type = (String) row[0];
             long qty   = ((Number) row[2]).longValue();
 
-            if ("BOTTLE".equals(type)) {
+            // 🌟 FIXED: Accurately checks against your real database strings
+            if (DB_BOTTLE.equals(type)) {
                 totalBottles = qty;
                 totalPoints += (qty * POINTS_PER_PLASTIC);
-            } else if ("CAN".equals(type)) {
+            } else if (DB_CAN.equals(type)) {
                 totalCans = qty;
                 totalPoints += (qty * POINTS_PER_METAL);
             }
@@ -203,8 +228,8 @@ public class RecyclingSubmissionService {
     public Map<String, Object> getItemInfo() {
         return Map.of(
             "items", List.of(
-                Map.of("type", "BOTTLE", "pointsPerItem", POINTS_PER_PLASTIC, "description", "Plastic bottle"),
-                Map.of("type", "CAN",    "pointsPerItem", POINTS_PER_METAL, "description", "Aluminium can")
+                Map.of("type", DB_BOTTLE, "pointsPerItem", POINTS_PER_PLASTIC, "description", "Plastic bottle"),
+                Map.of("type", DB_CAN,    "pointsPerItem", POINTS_PER_METAL, "description", "Aluminium can")
             ),
             "welcomeBonus", 20
         );

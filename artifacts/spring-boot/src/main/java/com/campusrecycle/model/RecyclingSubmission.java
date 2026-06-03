@@ -30,7 +30,8 @@ public class RecyclingSubmission {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @Column(nullable = false, length = 50)
+    // 🌟 FIXED: Changed nullable to true so Hibernate doesn't crash on existing old data rows
+    @Column(nullable = true, length = 50)
     private String status = "APPROVED";
 
     @Column(name = "submitted_at", nullable = false)

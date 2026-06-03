@@ -1,41 +1,44 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /api
+        server:
+          port: 8080
+          servlet:
+            context-path: /api # 🌐 Prefixes ALL routes globally to fix your friend's 404 mismatch
 
-spring:
-  datasource:
-    url: ${SUPABASE_DB_URL}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    open-in-view: false
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        temp:
-          use_jdbc_metadata_defaults: false
-        boot:
-          allow_jdbc_metadata_access: false 
-app:
-  jwt:
-    secret: ${SESSION_SECRET}
-    expiration-ms: 86400000
-  frontend-url: https://campus-recycle-rewards--ctu01.replit.app
-  python-backend-url: ${PYTHON_BACKEND_URL:http://localhost:8000}
+        spring:
+          datasource:
+            url: ${SUPABASE_DB_URL}
+            driver-class-name: org.postgresql.Driver
+          jpa:
+            open-in-view: false
+            database: postgresql
+            database-platform: org.hibernate.dialect.PostgreSQLDialect
+            hibernate:
+              ddl-auto: update
+            show-sql: false
+            properties:
+              hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+                temp:
+                  use_jdbc_metadata_defaults: false
+                boot:
+                  allow_jdbc_metadata_access: false 
 
-management:
-  endpoints:
-    web:
-      base-path: /actuator
-      exposure:
-        include: health,info
+        app:
+          jwt:
+            secret: ${SESSION_SECRET}
+            expiration-ms: 86400000
+          # 🔗 Syncing both variants of her production Replit client domains
+          frontend-url: https://campus-recycle-rewards--ctu01.replit.app
+          friend-dev-url: https://campus-rewards-backend--jahnaviverma.replit.app
+          python-backend-url: ${PYTHON_BACKEND_URL:http://localhost:8000}
 
-logging:
-  level:
-    com.campusrecycle: INFO
-    org.springframework.security: WARN
+        management:
+          endpoints:
+            web:
+              base-path: /actuator
+              exposure:
+                include: health,info
+
+        logging:
+          level:
+            com.campusrecycle: INFO
+            org.springframework.security: WARN
