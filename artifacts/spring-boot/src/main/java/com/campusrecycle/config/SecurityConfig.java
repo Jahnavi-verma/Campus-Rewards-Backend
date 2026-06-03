@@ -52,14 +52,12 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api",
-                    "/api/healthz",
-                    "/api/actuator/**",
-                    "/api/auth/login",
-                    "/api/auth/register",
-                    "/api/recycling/items",
+                    "/auth/login",
+                    "/auth/register",
+                    "/auth/verify",
                     "/healthz",
-                    "/actuator/**"
+                    "/actuator/**",
+                    "/recycling/items"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -75,7 +73,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-            appProperties.getFrontendUrl() != null ? appProperties.getFrontendUrl() : "*",
+            "*",
             "http://localhost:3000",
             "http://localhost:5173",
             "https://campus-recycle-rewards--ctu01.replit.app"

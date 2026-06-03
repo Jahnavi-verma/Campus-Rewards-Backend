@@ -31,10 +31,17 @@ externalPort = 80
 localPort = 8082
 externalPort = 3000
 
-[userenv]
+[[ports]]
+localPort = 8083
+externalPort = 3001
 
-[userenv.shared]
-DATABASE_URL = "postgresql://postgres:binGO-Java-@db.eocjeveawhtnzplaklbo.supabase.co:5432/postgres"
+[[ports]]
+localPort = 8083
+externalPort = 3001
+
+# REMOVE OR COMMENT OUT THE OLD USERENV DATABASE ACCESS
+# [userenv.shared]
+# DATABASE_URL = "postgresql://postgres:binGO-Java-@db.eocjeveawhtnzplaklbo.supabase.co:5432/postgres"
 
 [nix]
 packages = ["netcat-gnu"]
