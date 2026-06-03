@@ -74,6 +74,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
             "*",
+            "https://09a02b99-34ef-4226-9068-dcf3b2dfd8d4-00-gg67s1d68s2i.sisko.replit.dev",
             "http://localhost:3000",
             "http://localhost:5173",
             "https://campus-recycle-rewards--ctu01.replit.app"

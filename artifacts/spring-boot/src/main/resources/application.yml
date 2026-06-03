@@ -20,7 +20,7 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
         boot:
-          allow_jdbc_metadata_access: false # <-- ADD THIS: Completely blocks version checking
+          allow_jdbc_metadata_access: false 
 app:
   jwt:
     secret: ${SESSION_SECRET}
