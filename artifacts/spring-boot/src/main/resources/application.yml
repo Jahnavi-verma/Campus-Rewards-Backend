@@ -4,23 +4,23 @@ server:
     context-path: /api
 
 spring:
-datasource:
-  url: ${SUPABASE_DB_URL}
-  driver-class-name: org.postgresql.Driver
-jpa:
-  open-in-view: false
-  database: postgresql
-  database-platform: org.hibernate.dialect.PostgreSQLDialect
-  hibernate:
-    ddl-auto: update
-  show-sql: false
-  properties:
+  datasource:
+    url: ${SUPABASE_DB_URL}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      dialect: org.hibernate.dialect.PostgreSQLDialect
-      temp:
-        use_jdbc_metadata_defaults: false
-      boot:
-        allow_jdbc_metadata_access: false # <-- ADD THIS: Completely blocks version checking
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+        boot:
+          allow_jdbc_metadata_access: false # <-- ADD THIS: Completely blocks version checking
 app:
   jwt:
     secret: ${SESSION_SECRET}
