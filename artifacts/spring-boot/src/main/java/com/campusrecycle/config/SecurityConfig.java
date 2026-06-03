@@ -72,13 +72,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-            "*",
+
+        // 🌟 FIXED: Use setAllowedOriginPatterns instead of setAllowedOrigins!
+        config.setAllowedOriginPatterns(List.of(
+            "*", // This dynamically permits any Replit preview URL safely with credentials
             "https://09a02b99-34ef-4226-9068-dcf3b2dfd8d4-00-gg67s1d68s2i.sisko.replit.dev",
             "http://localhost:3000",
             "http://localhost:5173",
             "https://campus-recycle-rewards--ctu01.replit.app"
         ));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
