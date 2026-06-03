@@ -12,6 +12,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = "*") 
 public class UserController {
 
     private final UserService userService;
@@ -40,7 +41,7 @@ public class UserController {
 
     @PostMapping("/me/points")
     public ResponseEntity<UserDto> addPoints(Authentication authentication,
-                                              @RequestBody Map<String, Integer> body) {
+                                             @RequestBody Map<String, Integer> body) {
         Long userId = Long.parseLong(authentication.getName());
         int points = body.getOrDefault("points", 0);
         User user = userService.addPoints(userId, points);

@@ -24,21 +24,27 @@ public class UserDto {
         dto.id = user.getId();
         dto.email = user.getEmail();
         dto.name = user.getName();
-        dto.avatarUrl = user.getAvatarUrl();
         dto.points = user.getPoints();
         dto.role = user.getRole();
         dto.createdAt = user.getCreatedAt();
         dto.lastLoginAt = user.getLastLoginAt();
 
+        // 🌳 COMPUTE LEVEL META DETAILS VIA LEVELUTILS
         LevelUtils.LevelInfo info = LevelUtils.getLevel(user.getPoints());
         dto.level = info.level();
         dto.levelTitle = info.title();
         dto.nextLevelPoints = info.nextLevelPoints();
         dto.levelProgressPercent = info.progressPercent();
 
+        // ✨ ALIGN AVATAR URL WITH THE LIVE COMPUTED LEVEL TITLE STRING
+        dto.avatarUrl = (user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) 
+                        ? user.getAvatarUrl() 
+                        : info.title();
+
         return dto;
     }
 
+    // 💡 Public Getters for JSON Serialization Pipeline
     public Long getId() { return id; }
     public String getEmail() { return email; }
     public String getName() { return name; }
